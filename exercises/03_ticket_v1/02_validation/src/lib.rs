@@ -18,27 +18,30 @@ impl Ticket {
     // to find the most appropriate options
     // -> https://doc.rust-lang.org/std/string/struct.String.html
     fn new(title: String, description: String, status: String) -> Self {
-        if title.is_empty() {
-            panic!("Title cannot be empty")
-        }
-        if title.len() > 50 {
-            panic!("Title cannot be longer than 50 bytes")
-        }
-        if description.is_empty() {
-            panic!("Description cannot be empty")
-        }
-        if description.len() > 500 {
-            panic!("Description cannot be longer than 500 bytes")
-        }
-        match status.as_str() {
-            "To-Do" | "In Progress" | "Done" => (),
-            _ => panic!("Only `To-Do`, `In Progress`, and `Done` statuses are allowed"),
-        };
+        Self::_validate_text(&title, 50, "Title");
+        Self::_validate_text(&description, 500, "Description");
+        Self::_validate_status(&status);
+
         Self {
             title,
             description,
             status,
         }
+    }
+
+    fn _validate_text(text: &String, max_len: usize, field_name: &str){
+        if text.is_empty() {
+            panic!("{} cannot be empty", field_name)
+        }
+        if text.len() > max_len {
+            panic!("{} cannot be longer than {} bytes", field_name, max_len)
+        }
+    }
+    fn _validate_status(status: &String){
+        match status.as_str() {
+            "To-Do" | "In Progress" | "Done" => (),
+            _ => panic!("Only `To-Do`, `In Progress`, and `Done` statuses are allowed"),
+        };
     }
 }
 
