@@ -37,15 +37,44 @@ impl Ticket {
     pub fn title(&self) -> &String {
         &self.title
     }
+    pub fn set_title(&mut self, new_title: String) {
+        if new_title.is_empty() {
+            panic!("Title cannot be empty");
+        }
+        if new_title.len() > 50 {
+            panic!("Title cannot be longer than 50 bytes");
+        }
+        self.title = new_title;
+    }
 
     pub fn description(&self) -> &String {
         &self.description
+    }
+    pub fn set_description(&mut self, new_description: String) {
+        if new_description.is_empty() {
+            panic!("Description cannot be empty");
+        }
+        if new_description.len() > 500 {
+            panic!("Description cannot be longer than 500 bytes");
+        }
+        self.description = new_description
     }
 
     pub fn status(&self) -> &String {
         &self.status
     }
-}
+    pub fn set_status(&mut self, new_status: String) {
+        match new_status.as_str() {
+            "To-Do" | "In Progress" | "Done" => {
+                self.status = new_status
+            }
+            _ => {
+                panic!(
+                    "Only `To-Do`, `In Progress`, and `Done` \
+                    statuses are allowed"
+                );
+}}}}
+
 
 #[cfg(test)]
 mod tests {
@@ -67,13 +96,15 @@ mod tests {
     #[test]
     #[should_panic(expected = "Title cannot be empty")]
     fn title_cannot_be_empty() {
-        Ticket::new(valid_title(), valid_description(), "To-Do".into()).set_title("".into());
+        Ticket::new(valid_title(), valid_description(), "To-Do".into())
+            .set_title("".into());
     }
 
     #[test]
     #[should_panic(expected = "Description cannot be empty")]
     fn description_cannot_be_empty() {
-        Ticket::new(valid_title(), valid_description(), "To-Do".into()).set_description("".into());
+        Ticket::new(valid_title(), valid_description(), "To-Do".into())
+            .set_description("".into());
     }
 
     #[test]
@@ -93,6 +124,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "Only `To-Do`, `In Progress`, and `Done` statuses are allowed")]
     fn status_must_be_valid() {
-        Ticket::new(valid_title(), valid_description(), "To-Do".into()).set_status("Funny".into());
+        Ticket::new(valid_title(), valid_description(), "To-Do".into())
+            .set_status("Funny".into());
     }
 }
