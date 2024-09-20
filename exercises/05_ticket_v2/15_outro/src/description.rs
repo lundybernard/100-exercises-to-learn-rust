@@ -1,8 +1,49 @@
 // TODO: Implement `TryFrom<String>` and `TryFrom<&str>` for the `TicketDescription` type,
 //   enforcing that the description is not empty and is not longer than 500 bytes.
 //   Implement the traits required to make the tests pass too.
-
+#[derive(Debug, PartialEq, Clone)]
 pub struct TicketDescription(String);
+
+impl TryFrom<String> for TicketDescription {
+    type Error = TicketDescriptionError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        // Use TryFrom<&str> to parse the input
+        value.as_str().try_into()
+    }
+}
+
+impl TryFrom<&str> for TicketDescription {
+    type Error = TicketDescriptionError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Ok(parse(value)?)
+    }
+}
+
+// NOTE: Found a better way, parsing the input instead of validating it,
+// as suggested by https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/
+fn parse(description: &str) -> Result<
+    TicketDescription, TicketDescriptionError
+> {
+    if description.is_empty() {
+        Err(TicketDescriptionError::Empty)
+    } else if description.len() > 500 {
+        Err(TicketDescriptionError::TooLong)
+    } else {
+        Ok(TicketDescription(description.to_string()))
+    }
+}
+
+
+#[derive(Debug, thiserror::Error)]
+pub enum TicketDescriptionError {
+    #[error("The description cannot be empty")]
+    Empty,
+    #[error("The description cannot be longer than 500 bytes")]
+    TooLong,
+}
+
 
 #[cfg(test)]
 mod tests {
