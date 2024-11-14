@@ -11,10 +11,18 @@ use ticket_fields::{TicketDescription, TicketTitle};
 #[derive(Clone)]
 pub struct TicketStore {
     tickets: Vec<Ticket>,
+    nextid: u64,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct TicketId(u64);
+
+impl TicketId {
+    // Method to get the inner value
+    fn as_usize(&self) -> usize {
+        self.0 as usize
+    }
+}
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Ticket {
@@ -41,11 +49,31 @@ impl TicketStore {
     pub fn new() -> Self {
         Self {
             tickets: Vec::new(),
+            nextid: 0,
         }
     }
 
-    pub fn add_ticket(&mut self, ticket: Ticket) {
+    fn next_id(&mut self) -> TicketId {
+        let id = TicketId(self.nextid);
+        self.nextid += 1;
+        return id
+    }
+
+    pub fn add_ticket(&mut self, ticket_draft: TicketDraft) -> TicketId {
+        let id = self.next_id();
+        let ticket = Ticket {
+            id: id.clone(),
+            title: ticket_draft.title,
+            description: ticket_draft.description,
+            status: Status::ToDo,
+        };
         self.tickets.push(ticket);
+        return id
+    }
+
+    pub fn get(&self, ticket_id: TicketId) -> Option<&Ticket> {
+        let index: usize = ticket_id.as_usize();
+        self.tickets.get(index)
     }
 }
 
@@ -73,7 +101,7 @@ mod tests {
             description: ticket_description(),
         };
         let id2 = store.add_ticket(draft2);
-        let ticket2 = store.get(id2).unwrap();
+        let _ticket2 = store.get(id2).unwrap();
 
         assert_ne!(id1, id2);
     }
