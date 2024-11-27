@@ -3,11 +3,29 @@
 //  sum each half in a separate thread.
 //  Hint: check out `Vec::leak`.
 
+
 use std::thread;
 
+
 pub fn sum(v: Vec<i32>) -> i32 {
-    todo!()
+    let v_leak = Box::new(v);
+    let static_vec: &'static mut Vec<i32> = Box::leak(v_leak);
+
+    let (slice_1, slice_2) = static_vec.split_at(
+        static_vec.len() / 2
+    );
+
+    let th1 = thread::spawn(
+        move || slice_1.iter().sum::<i32>()
+    );
+    let th2 = thread::spawn(
+        move || slice_2.iter().sum::<i32>()
+    );
+
+    th1.join().unwrap()
+    + th2.join().unwrap()
 }
+
 
 #[cfg(test)]
 mod tests {
