@@ -4,9 +4,12 @@ use response::{launch, Command};
 use ticket_fields::test_helpers::{ticket_description, ticket_title};
 
 #[test]
-fn insert_works() {
+fn integration_test_insert() {
     let sender = launch();
-    let (response_sender, response_receiver) = std::sync::mpsc::channel();
+    let (
+        response_sender,
+        response_receiver,
+    ) = std::sync::mpsc::channel();
 
     let draft = TicketDraft {
         title: ticket_title(),
