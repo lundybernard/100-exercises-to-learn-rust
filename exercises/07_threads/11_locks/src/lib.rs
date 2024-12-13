@@ -1,7 +1,7 @@
 // TODO: Fill in the missing methods for `TicketStore`.
 //  Notice how we no longer need a separate update command: `Get` now returns a handle to the ticket
 //  which allows the caller to both modify and read the ticket.
-use std::sync::mpsc::{sync_channel, Receiver, SyncSender, TrySendError};
+use std::sync::mpsc::{sync_channel, Receiver, SyncSender};
 use std::sync::{Arc, Mutex};
 
 use crate::data::{Ticket, TicketDraft};
@@ -17,25 +17,19 @@ pub struct TicketStoreClient {
 
 impl TicketStoreClient {
     pub fn insert(&self, draft: TicketDraft) -> Result<TicketId, OverloadedError> {
-        let (response_sender, response_receiver) = sync_channel(1);
+        let (response_channel, rx) = sync_channel(1);
         self.sender
-            .try_send(Command::Insert {
-                draft,
-                response_channel: response_sender,
-            })
+            .try_send(Command::Insert {draft, response_channel})
             .map_err(|_| OverloadedError)?;
-        Ok(response_receiver.recv().unwrap())
+        Ok(rx.recv().unwrap())
     }
 
     pub fn get(&self, id: TicketId) -> Result<Option<Arc<Mutex<Ticket>>>, OverloadedError> {
-        let (response_sender, response_receiver) = sync_channel(1);
+        let (response_channel, rx) = sync_channel(1);
         self.sender
-            .try_send(Command::Get {
-                id,
-                response_channel: response_sender,
-            })
+            .try_send(Command::Get{id, response_channel})
             .map_err(|_| OverloadedError)?;
-        Ok(response_receiver.recv().unwrap())
+        Ok(rx.recv().unwrap())
     }
 }
 
@@ -60,7 +54,7 @@ enum Command {
     },
 }
 
-pub fn server(receiver: Receiver<Command>) {
+fn server(receiver: Receiver<Command>) {
     let mut store = TicketStore::new();
     loop {
         match receiver.recv() {
