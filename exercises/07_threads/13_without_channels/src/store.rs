@@ -13,11 +13,11 @@ pub struct TicketStore {
 }
 
 impl TicketStore {
-    pub fn new() -> Self {
-        Self {
+    pub fn new() -> Arc<RwLock<Self>> {
+        Arc::new(RwLock::new(Self {
             tickets: BTreeMap::new(),
             counter: 0,
-        }
+        }))
     }
 
     pub fn add_ticket(&mut self, ticket: TicketDraft) -> TicketId {

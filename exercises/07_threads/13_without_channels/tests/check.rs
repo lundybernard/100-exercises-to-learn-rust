@@ -1,4 +1,4 @@
-use std::sync::{Arc, RwLock};
+// use std::sync::{Arc, RwLock};
 use std::thread::spawn;
 
 use ticket_fields::test_helpers::{ticket_description, ticket_title};
@@ -7,7 +7,11 @@ use without_channels::store::TicketStore;
 
 #[test]
 fn works() {
-    let store = todo!();
+    // Official solution
+    // use ticket_fields::test_helpers::{ticket_description, ticket_title};
+    // my solution was to modify the TicketStore::new method
+    // to return an Arc<RwLock<>> instead of wrapping the returned instance
+    let store = TicketStore::new();
 
     let store1 = store.clone();
     let client1 = spawn(move || {
