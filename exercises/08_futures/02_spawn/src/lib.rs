@@ -3,11 +3,15 @@ use tokio::net::TcpListener;
 // TODO: write an echo server that accepts TCP connections on two listeners, concurrently.
 //  Multiple connections (on the same listeners) should be processed concurrently.
 //  The received data should be echoed back to the client.
-pub async fn echoes(listeners: Vec<TcpListener>) -> Result<(), anyhow::Error> {
-    let mut handles = Vec::new();
-    for listener in listeners {
-        handles.push(tokio::spawn(echo(listener)));
-    }
+pub async fn echoes<I>(listeners: I) -> Result<(), anyhow::Error>
+where
+    I: IntoIterator<Item = TcpListener>,
+{
+    let handles: Vec<_> = listeners
+        .into_iter()
+        .map(|listener| tokio::spawn(echo(listener)))
+        .collect();
+
     for handle in handles {
         handle.await??;
     }
@@ -42,15 +46,25 @@ mod tests {
 
     #[tokio::test]
     async fn test_echo() {
-        let (first_listener, first_addr) = bind_random().await;
-        let (second_listener, second_addr) = bind_random().await;
-        tokio::spawn(echoes(vec![first_listener, second_listener]));
+        let count = 3;
+        let mut listeners = Vec::with_capacity(count);
+        let mut addresses = Vec::with_capacity(count);
+        for _ in 0..count {
+            let (listener, address) = bind_random().await;
+            listeners.push(listener);
+            addresses.push(address);
+        }
+
+
+        //let (first_listener, first_addr) = bind_random().await;
+        //let (second_listener, second_addr) = bind_random().await;
+        tokio::spawn(echoes(listeners));
 
         let requests = vec!["hello", "world", "foo", "bar"];
         let mut join_set = JoinSet::new();
 
         for request in requests.clone() {
-            for addr in [first_addr, second_addr] {
+            for addr in addresses.clone() {
                 join_set.spawn(async move {
                     let mut socket = tokio::net::TcpStream::connect(addr).await.unwrap();
                     let (mut reader, mut writer) = socket.split();
